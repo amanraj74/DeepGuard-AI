@@ -280,7 +280,7 @@ DeepGuard-AI/
 
 ---
 
-## 👤 Team Name - AI Core Member name - Aman Jaiswal
+## 👤 Team Name - AI Core ( Member name - Aman Jaiswal )
 
 Built for **IIT Bombay Hack & Break 2026** — Generative AI & Cybersecurity Innovation Challenge.
 
