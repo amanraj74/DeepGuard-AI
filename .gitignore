@@ -1,0 +1,31 @@
+# Virtual Environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Model weights (too large for GitHub)
+*.bin
+*.pt
+*.safetensors
+
+# Uploads folder
+uploads/
+
+# Environment variables
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# HuggingFace cache
+.cache/
+
+# IDE
+.vscode/
+*.idea/
