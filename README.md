@@ -150,7 +150,7 @@ Independent of the neural network, the system computes real signal-analysis metr
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/DeepGuard-AI.git
+git clone https://github.com/amanraj74/DeepGuard-AI.git
 cd DeepGuard-AI
 
 # Create virtual environment
@@ -280,7 +280,7 @@ DeepGuard-AI/
 
 ---
 
-## 👤 Team
+## 👤 Team Name - AI Core Member name - Aman Jaiswal
 
 Built for **IIT Bombay Hack & Break 2026** — Generative AI & Cybersecurity Innovation Challenge.
 
