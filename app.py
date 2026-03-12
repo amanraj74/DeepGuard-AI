@@ -1,8 +1,8 @@
 import streamlit as st
-from PIL import Image
+from PIL import Image, ImageFilter
 import torch
 import numpy as np
-import cv2
+from scipy import ndimage
 import time
 import io
 from transformers import ViTForImageClassification, ViTImageProcessor
@@ -65,17 +65,19 @@ class DeepfakeDetector:
 
     # ── forensics ───────────────────────────────────────────────────
     def _forensics(self, image: Image.Image):
-        arr  = np.array(image.convert("RGB")).astype(np.float32)
-        gray = cv2.cvtColor(arr.astype(np.uint8), cv2.COLOR_RGB2GRAY).astype(np.float32)
+        arr  = np.array(image.convert("RGB")).astype(np.float64)
+        gray = np.mean(arr, axis=2)
 
-        # Noise variance
-        blurred      = cv2.GaussianBlur(gray, (5, 5), 0)
+        # Noise variance (high-pass via Gaussian blur difference)
+        blurred      = ndimage.gaussian_filter(gray, sigma=2.0)
         noise_var    = float(np.var(gray - blurred))
         noise_score  = min(int(noise_var / 5), 100)
 
-        # Edge consistency
-        edges        = cv2.Canny(gray.astype(np.uint8), 50, 150)
-        edge_density = float(np.sum(edges > 0)) / edges.size
+        # Edge consistency (Sobel magnitude)
+        sx           = ndimage.sobel(gray, axis=0)
+        sy           = ndimage.sobel(gray, axis=1)
+        edge_mag     = np.hypot(sx, sy)
+        edge_density = float(np.mean(edge_mag > 30)) 
         edge_score   = max(0, min(100, int((1 - edge_density * 20) * 100)))
 
         # Color channel correlation
@@ -85,12 +87,16 @@ class DeepfakeDetector:
         avg_corr     = (abs(corr_rg) + abs(corr_rb)) / 2
         color_score  = min(int(avg_corr * 100), 100)
 
-        # JPEG artifact detection
-        gray_u8      = gray.astype(np.uint8)
-        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 95]
-        _, enc       = cv2.imencode('.jpg', gray_u8, encode_param)
-        dec          = cv2.imdecode(enc, cv2.IMREAD_GRAYSCALE).astype(np.float32)
-        jpeg_diff    = float(np.mean(np.abs(gray - dec)))
+        # JPEG artifact detection (re-encode via PIL and measure diff)
+        buf = io.BytesIO()
+        image.convert("RGB").save(buf, format="JPEG", quality=95)
+        buf.seek(0)
+        recompressed = np.array(Image.open(buf).convert("L")).astype(np.float64)
+        gray_u8      = np.array(image.convert("L")).astype(np.float64)
+        # Match sizes in case of rounding
+        h = min(gray_u8.shape[0], recompressed.shape[0])
+        w = min(gray_u8.shape[1], recompressed.shape[1])
+        jpeg_diff    = float(np.mean(np.abs(gray_u8[:h,:w] - recompressed[:h,:w])))
         jpeg_score   = min(int(jpeg_diff * 10), 100)
 
         overall = int((noise_score * 0.3 + (100 - edge_score) * 0.3 +

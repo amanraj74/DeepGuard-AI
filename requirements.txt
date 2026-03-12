@@ -1,9 +1,14 @@
-streamlit
+# PyTorch CPU-only (MUST be first for Streamlit Cloud)
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch
 torchvision
+
+# Core ML
 transformers
-Pillow
 facenet-pytorch
 numpy<2
-opencv-python-headless
+Pillow
 scipy
+
+# Streamlit
+streamlit
